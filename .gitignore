@@ -1,0 +1,35 @@
+# Environments
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Secrets / local config
+.env
+!.env.example
+
+# Data (raw PDFs referenced by URL/object storage per Section 7.4, not committed)
+data/raw_pdfs/
+data/processed_chunks/
+
+# Test / coverage artifacts
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# IDE / local tooling
+.vscode/
+.idea/
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
