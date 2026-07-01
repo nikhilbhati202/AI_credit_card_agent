@@ -23,3 +23,13 @@ id,query,cards_owned,point_valuation,expected_category,expected_outcome,expected
 22,Paying for a digital subscription worth Rs. 1000,ICICI Amazon Pay,1.0,digital_categories,recommended,ICICI Amazon Pay,20,2.0,
 23,"Shopping online for Rs. 30,000",SBI Cashback;SBI SimplyCLICK,0.5,online_shopping,recommended,SBI Cashback,1500,5.0,Comparison: cashback Rs.1500 beats points at 0.5 valuation Rs.750
 24,Buying a rare collectible for Rs. 5000,SBI Cashback,1.0,other,insufficient_information,,,,SBI Cashback has no generic other rule; its structure is purely online/offline
+25,Booking on Yatra for Rs. 8000,SBI SimplyCLICK,1.0,partner_brand_online,recommended,SBI SimplyCLICK,800,10.0,
+26,Paying my house rent of Rs. 20000,Axis Atlas,1.0,rent,insufficient_information,,,,Rent is a recognized category but Axis Atlas defines no rule for it
+27,Ordering a cab through Ola for Rs. 600,Axis ACE,1.0,food_delivery_cabs,recommended,Axis ACE,24,4.0,
+28,Booking a hotel through an online travel agency for Rs. 40000,Axis Atlas,1.0,travel_agents,recommended,Axis Atlas,800,2.0,Booking-channel signal (travel agency) overrides the generic hotels category
+29,Shopping online for Rs. 45000,SBI SimplyCLICK,1.0,online_shopping,recommended,SBI SimplyCLICK,2250,5.0,Below the 10000-point cap threshold (Rs.2L spend)
+30,"Paying at a retail store for Rs. 2,50,000",SBI Cashback,1.0,offline_retail,recommended,SBI Cashback,2000,0.8,Tests REWARD_UNITS cap: Rs.2000 cashback cap reached at Rs.2L spend
+31,Making a digitally fulfilled purchase worth Rs. 3000,ICICI Amazon Pay,1.0,digital_categories,recommended,ICICI Amazon Pay,60,2.0,
+32,Paying an insurance premium of Rs. 8000,Axis Atlas,1.0,insurance,insufficient_information,,,,Insurance is a recognized category but Axis Atlas defines no rule for it
+33,Paying at a retail store for Rs. 12000,SBI SimplyCLICK,1.0,offline_retail,insufficient_information,,,,offline_retail is recognized but SimplyCLICK has no rule for it (must not fall back to 'other')
+34,Buying furniture worth Rs. 7000,SBI SimplyCLICK,1.0,other,recommended,SBI SimplyCLICK,70,1.0,No specific category recognized; falls back to base rate

@@ -50,8 +50,8 @@ jobs:
       - name: Ruff format check
         run: ruff format --check .
 
-      - name: mypy (database/models.py, tools/, strict)
-        run: mypy database/models.py tools/calculator.py tools/retriever.py
+      - name: mypy (database/models.py, tools/, agents/, strict)
+        run: mypy database/models.py tools/calculator.py tools/retriever.py agents/ backend/ services/ monitoring/
 
       - name: Apply migrations
         run: alembic upgrade head
@@ -59,13 +59,21 @@ jobs:
       - name: Seed the 5-card MVP corpus
         run: python -m database.seed
 
-      - name: pytest (unit + integration)
+      # No ANTHROPIC_API_KEY is needed here: the graph's two LLM-touching nodes are mocked
+      # in tests/conftest.py, so pytest exercises the real HTTP/DB/calculator/retriever paths
+      # without a paid API call (Section 18.3's "Agent" test type run against the compiled
+      # graph directly).
+      - name: pytest (unit + integration + agent)
         run: pytest --cov --cov-report=term-missing
 
       # Golden-set gates (Section 18.4): these are non-negotiable per the implementation
       # guide - block the merge rather than let calculation drift or an ungrounded claim in.
+      # All four run the deterministic core directly (no LLM), same reasoning as above.
       - name: Calculation accuracy gate (must be 100%)
         run: python -m evaluation.calculation_eval
+
+      - name: Monthly-optimization accuracy gate (must be 100%)
+        run: python -m evaluation.monthly_optimization_eval
 
       - name: Retrieval precision@5 gate (must be >= 0.75)
         run: python -m evaluation.rag_eval

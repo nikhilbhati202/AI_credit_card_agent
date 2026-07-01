@@ -16,9 +16,14 @@ annotated-types==0.7.0
     # via
     #   -c requirements.txt
     #   pydantic
+anthropic==0.115.0
+    # via
+    #   -c requirements.txt
+    #   langchain-anthropic
 anyio==4.14.1
     # via
     #   -c requirements.txt
+    #   anthropic
     #   httpx
     #   langsmith
     #   starlette
@@ -62,7 +67,12 @@ distlib==0.4.3
 distro==1.9.0
     # via
     #   -c requirements.txt
+    #   anthropic
     #   langsmith
+docstring-parser==0.18.0
+    # via
+    #   -c requirements.txt
+    #   anthropic
 fastapi==0.138.2
     # via
     #   -c requirements.txt
@@ -101,6 +111,8 @@ httpx==0.28.1
     # via
     #   -c requirements.txt
     #   -r requirements-dev.in
+    #   anthropic
+    #   langgraph-sdk
     #   langsmith
 huggingface-hub==0.36.2
     # via
@@ -122,6 +134,10 @@ jinja2==3.1.6
     # via
     #   -c requirements.txt
     #   torch
+jiter==0.16.0
+    # via
+    #   -c requirements.txt
+    #   anthropic
 joblib==1.5.3
     # via
     #   -c requirements.txt
@@ -134,10 +150,18 @@ jsonpointer==3.1.1
     # via
     #   -c requirements.txt
     #   jsonpatch
+langchain-anthropic==0.3.21
+    # via
+    #   -c requirements.txt
+    #   -r requirements.in
 langchain-core==1.4.8
     # via
     #   -c requirements.txt
+    #   langchain-anthropic
     #   langchain-text-splitters
+    #   langgraph
+    #   langgraph-checkpoint
+    #   langgraph-prebuilt
 langchain-protocol==0.0.18
     # via
     #   -c requirements.txt
@@ -146,6 +170,23 @@ langchain-text-splitters==0.3.11
     # via
     #   -c requirements.txt
     #   -r requirements.in
+langgraph==0.6.11
+    # via
+    #   -c requirements.txt
+    #   -r requirements.in
+langgraph-checkpoint==3.0.1
+    # via
+    #   -c requirements.txt
+    #   langgraph
+    #   langgraph-prebuilt
+langgraph-prebuilt==0.6.5
+    # via
+    #   -c requirements.txt
+    #   langgraph
+langgraph-sdk==0.2.15
+    # via
+    #   -c requirements.txt
+    #   langgraph
 langsmith==0.9.4
     # via
     #   -c requirements.txt
@@ -189,7 +230,12 @@ numpy==2.5.0
 orjson==3.11.9
     # via
     #   -c requirements.txt
+    #   langgraph-sdk
     #   langsmith
+ormsgpack==1.12.2
+    # via
+    #   -c requirements.txt
+    #   langgraph-checkpoint
 packaging==26.2
     # via
     #   -c requirements.txt
@@ -243,8 +289,11 @@ pydantic==2.13.4
     # via
     #   -c requirements.txt
     #   -r requirements.in
+    #   anthropic
     #   fastapi
+    #   langchain-anthropic
     #   langchain-core
+    #   langgraph
     #   langsmith
     #   pydantic-settings
 pydantic-core==2.46.4
@@ -327,6 +376,7 @@ sentence-transformers==3.4.1
 sniffio==1.3.1
     # via
     #   -c requirements.txt
+    #   anthropic
     #   langsmith
 sqlalchemy==2.0.51
     # via
@@ -371,6 +421,7 @@ typing-extensions==4.15.0
     # via
     #   -c requirements.txt
     #   alembic
+    #   anthropic
     #   anyio
     #   fastapi
     #   huggingface-hub
@@ -422,6 +473,7 @@ websockets==16.0
 xxhash==3.8.0
     # via
     #   -c requirements.txt
+    #   langgraph
     #   langsmith
 zstandard==0.25.0
     # via

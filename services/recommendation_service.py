@@ -84,7 +84,7 @@ class RecommendationResult:
     message: str | None = None
 
 
-def _confidence_label(score: float) -> str:
+def confidence_label(score: float) -> str:
     for threshold, label in _CONFIDENCE_BANDS:
         if score >= threshold:
             return label
@@ -131,7 +131,7 @@ def _citation_from_seed_link(db: Session, card_name: str, rule: RewardRule) -> R
     )
 
 
-def _evaluate_card(
+def evaluate_card(
     db: Session,
     card_name: str,
     category: str,
@@ -214,7 +214,7 @@ def recommend(
     evaluations = [
         e
         for card in cards_owned
-        if (e := _evaluate_card(db, card, category, spend_amount, point_valuation, retrieved))
+        if (e := evaluate_card(db, card, category, spend_amount, point_valuation, retrieved))
         is not None
     ]
 
@@ -257,7 +257,7 @@ def recommend(
             estimated_reward_value=None,
             effective_return_pct=None,
             calculation=None,
-            rules_used=[_citation_dict(e) for e in evaluations if e.citation],
+            rules_used=[citation_dict(e) for e in evaluations if e.citation],
             caps_or_exclusions=caps_or_exclusions,
             assumptions=assumptions,
             confidence="High",
@@ -285,15 +285,15 @@ def recommend(
             "point_valuation": point_valuation,
             "cap_applied": best.cap_applied,
         },
-        rules_used=[_citation_dict(e) for e in evaluations if e.citation],
+        rules_used=[citation_dict(e) for e in evaluations if e.citation],
         caps_or_exclusions=caps_or_exclusions,
         assumptions=assumptions,
         alternatives=alternatives,
-        confidence=_confidence_label(best.confidence_score),
+        confidence=confidence_label(best.confidence_score),
     )
 
 
-def _citation_dict(evaluation: CardEvaluation) -> dict[str, Any]:
+def citation_dict(evaluation: CardEvaluation) -> dict[str, Any]:
     citation = evaluation.citation
     assert citation is not None
     return {

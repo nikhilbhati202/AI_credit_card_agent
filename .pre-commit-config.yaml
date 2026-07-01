@@ -22,6 +22,10 @@ repos:
       - id: mypy
         additional_dependencies:
           - pydantic>=2.9
+          - pydantic-settings>=2.6
           - sqlalchemy>=2.0
           - pgvector
-        files: ^(database/models|tools/calculator|tools/retriever)\.py$
+          - langgraph>=0.2
+          - langchain-anthropic>=0.3
+          - fastapi>=0.115
+        files: ^(database/models\.py|tools/(calculator|retriever)\.py|agents/.*\.py)$

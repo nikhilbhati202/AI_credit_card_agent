@@ -15,3 +15,8 @@ pymupdf>=1.24,<2.0
 pdfplumber>=0.11,<1.0
 langchain-text-splitters>=0.3,<1.0
 sentence-transformers>=3.0,<4.0
+
+# Agent orchestration (Section 15): LangGraph + Claude for Intent Classification and the
+# Final Answer node - the only two LLM-touching nodes in the graph (Section 13.1/1.2).
+langgraph>=0.2,<1.0
+langchain-anthropic>=0.3,<1.0

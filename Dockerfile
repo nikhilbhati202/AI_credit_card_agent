@@ -17,6 +17,8 @@ COPY database/ database/
 COPY tools/ tools/
 COPY rag/ rag/
 COPY services/ services/
+COPY agents/ agents/
+COPY monitoring/ monitoring/
 COPY data/ data/
 COPY evaluation/ evaluation/
 COPY alembic.ini .
