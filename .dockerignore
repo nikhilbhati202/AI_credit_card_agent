@@ -9,7 +9,6 @@ __pycache__/
 htmlcov/
 .coverage
 .env
-data/raw_pdfs/
 data/processed_chunks/
 tests/
 docs/

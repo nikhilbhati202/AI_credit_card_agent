@@ -10,9 +10,15 @@ for the full specification. This README covers what exists today and how to run 
 
 ## Status
 
-**Phase 0 — Foundation.** Repository, environment, CI, and an empty-but-running service
-exist. No product functionality (retrieval, calculation, agent) has been built yet — that
-starts in Phase 1.
+**Phase 1 — Vertical Slice: Single-Transaction Recommendation (MVP).** End-to-end path is
+live: 5 real, official card documents are ingested, chunked, embedded locally, and stored in
+pgvector; a deterministic calculator computes reward value; `POST /api/v1/recommend` returns
+a cited, calculated answer. No LLM is called anywhere yet — intent/category extraction is a
+deterministic placeholder that Phase 2's LangGraph Intent Classification node replaces.
+
+Golden-set results (24 hand-curated questions, `data/golden_answers.csv`):
+calculation accuracy **100%**, retrieval precision@5 **0.87** (≥0.75 target), ungrounded
+numeric claims **0%**.
 
 ## Quickstart
 
@@ -20,6 +26,13 @@ starts in Phase 1.
 cp .env.example .env
 docker compose up -d --build
 curl http://localhost:8000/health   # -> {"status": "ok"}
+
+# Seed the 5-card MVP corpus (ingest -> chunk -> embed -> store, ~1 min first run):
+docker compose exec app python -m database.seed
+
+curl -X POST http://localhost:8000/api/v1/recommend \
+  -H "Content-Type: application/json" \
+  -d '{"query": "I am spending Rs. 50,000 on flights.", "cards_owned": ["Axis Atlas", "Axis ACE"]}'
 ```
 
 This brings up two containers:
@@ -38,21 +51,44 @@ pre-commit install
 
 # Point .env at a reachable Postgres instance, then:
 alembic upgrade head
+python -m database.seed
 uvicorn backend.main:app --reload
 pytest
+```
+
+## Evaluation
+
+```bash
+python -m evaluation.calculation_eval    # must be 100% (Section 18.4 gate)
+python -m evaluation.rag_eval            # must be >= 0.75 (architecture doc Section 3.6)
+python -m evaluation.hallucination_eval  # must be 0% ungrounded
 ```
 
 ## Project layout
 
 ```
 backend/       FastAPI app: config, routers, app factory
-database/      SQLAlchemy models, engine/session, Alembic migrations
+database/      SQLAlchemy models, engine/session, Alembic migrations, seed.py
+rag/           PDF extraction, chunking, local embedding pipeline
+tools/         calculator.py, retriever.py - pure, framework-agnostic, no DB/agent coupling
+services/      recommendation_service.py - composes tools + repositories (pre-agent, Phase 1)
+evaluation/    golden-set harness: calculation accuracy, retrieval precision@K, grounding
+data/          raw_pdfs/ (5 official card documents), golden_answers.csv
 tests/         unit / integration / agent test suites
 ```
 
-Directories such as `agents/`, `tools/`, `rag/`, and `evaluation/` are introduced in the
-phases that first populate them with real logic (see the Implementation Guide, Section 5)
-rather than scaffolded empty ahead of time.
+`agents/` is introduced in Phase 2 once a LangGraph graph actually wraps these services -
+scaffolding it earlier would be the "over-engineering the skeleton" risk the implementation
+guide calls out explicitly for Phase 0/1.
+
+## Data sourcing
+
+The 5 seeded cards (Axis Atlas, Axis ACE, SBI Cashback, SBI SimplyCLICK, ICICI Amazon Pay)
+are official T&C/feature documents fetched directly from each issuer's website (Section 7.1
+policy: no forum/aggregator content as ground truth). Source URL and effective date for each
+are recorded in `database/seed.py` and surfaced in every citation. Two of SBI's documents
+don't print an explicit revision date — the fetch date is used instead, noted as a known
+limitation.
 
 ## Branching model
 
@@ -65,7 +101,8 @@ Trunk-based: `main` is always deployable. Work happens on short-lived
 |---|---|
 | Dependency pinning | `pip-tools` (`requirements.in` / `requirements-dev.in` -> compiled `.txt`) |
 | Lint & format | Ruff |
-| Type checking | mypy (`--strict` on `database/models.py`; see `pyproject.toml`) |
-| Tests | pytest |
+| Type checking | mypy (`--strict` on `database/models.py`, `tools/calculator.py`, `tools/retriever.py`) |
+| Tests | pytest (`tests/unit`, `tests/integration`) |
+| Embeddings | Local `BAAI/bge-small-en-v1.5` via sentence-transformers (no API key needed) |
 | Pre-commit | Ruff + mypy + basic hygiene hooks |
-| CI | GitHub Actions (`.github/workflows/ci.yml`) |
+| CI | GitHub Actions (`.github/workflows/ci.yml`) — spins up Postgres+pgvector, seeds, runs tests + all three evaluation gates |

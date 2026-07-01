@@ -14,6 +14,11 @@ ENV PYTHONUNBUFFERED=1 \
 COPY --from=builder /install /usr/local
 COPY backend/ backend/
 COPY database/ database/
+COPY tools/ tools/
+COPY rag/ rag/
+COPY services/ services/
+COPY data/ data/
+COPY evaluation/ evaluation/
 COPY alembic.ini .
 
 RUN useradd --create-home appuser && chown -R appuser:appuser /app

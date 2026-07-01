@@ -1,0 +1,25 @@
+id,query,cards_owned,point_valuation,expected_category,expected_outcome,expected_recommended_card,expected_estimated_reward_value,expected_effective_return_pct,notes
+1,"I am spending Rs. 50,000 on flights.",Axis Atlas;Axis ACE;SBI Cashback,1.0,flights,recommended,Axis Atlas,2500,5.0,Matches architecture doc Section 13 canonical example
+2,"Booking a hotel worth Rs. 30,000 for my trip",Axis Atlas,1.0,hotels,recommended,Axis Atlas,1500,5.0,
+3,"Booking a flight for Rs. 80,000 through a travel agent",Axis Atlas,1.0,travel_agents,recommended,Axis Atlas,1600,2.0,Travel-agent bookings earn the base 2x rate not the 5x direct rate
+4,"Spending Rs. 2,50,000 on flights this month",Axis Atlas,1.0,flights,recommended,Axis Atlas,11000,4.4,Tests SPEND-basis cap split at Rs.2L: 5x below cap 2x above
+5,Buying clothes worth Rs. 5000,Axis Atlas;Axis ACE,1.0,other,recommended,Axis Atlas,100,2.0,No specific category recognized; falls back to each card base rate
+6,Filling petrol worth Rs. 2000,Axis Atlas;Axis ACE;SBI Cashback,1.0,fuel,none_reward,,,,All three cards exclude fuel from rewards
+7,Paying my electricity bill of Rs. 4000,Axis ACE;SBI Cashback,1.0,utility_bills,recommended,Axis ACE,200,5.0,ACE gives 5% via Google Pay; SBI Cashback excludes utility entirely
+8,Ordering food on Swiggy for Rs. 1500,Axis ACE,1.0,food_delivery_cabs,recommended,Axis ACE,60,4.0,
+9,Spending Rs. 15000 on utility bills via Google Pay,Axis ACE,1.0,utility_bills,recommended,Axis ACE,500,3.33,Tests REWARD_UNITS cap: Rs.500 cashback cap reached at Rs.10k spend
+10,Buying furniture for Rs. 6000,Axis ACE,1.0,other,recommended,Axis ACE,90,1.5,No specific category recognized; falls back to base rate
+11,"Shopping online for Rs. 30,000",SBI Cashback,1.0,online_shopping,recommended,SBI Cashback,1500,5.0,
+12,"Shopping online for Rs. 60,000",SBI Cashback,1.0,online_shopping,recommended,SBI Cashback,2000,3.33,Tests REWARD_UNITS cap: Rs.2000 cashback cap reached at Rs.40k spend
+13,Paying at a retail store for Rs. 8000,SBI Cashback,1.0,offline_retail,recommended,SBI Cashback,80,1.0,
+14,Paying my house rent of Rs. 25000,SBI Cashback,1.0,rent,none_reward,,,,Rent excluded from Card Cashback
+15,Paying an insurance premium of Rs. 12000,SBI Cashback,1.0,insurance,none_reward,,,,Insurance excluded from Card Cashback
+16,Booking on Cleartrip for Rs. 10000,SBI SimplyCLICK,1.0,partner_brand_online,recommended,SBI SimplyCLICK,1000,10.0,
+17,Shopping online for Rs. 50000,SBI SimplyCLICK,1.0,online_shopping,recommended,SBI SimplyCLICK,2500,5.0,
+18,"Shopping online for Rs. 2,50,000",SBI SimplyCLICK,1.0,online_shopping,recommended,SBI SimplyCLICK,10500,4.2,Tests REWARD_UNITS cap: 10000-point cap reached at Rs.2L spend then 1x
+19,Filling petrol worth Rs. 3000,SBI SimplyCLICK,1.0,fuel,none_reward,,,,Fuel excluded from Reward Points
+20,Shopping on Amazon as a Prime member for Rs. 4000,ICICI Amazon Pay,1.0,amazon_prime,recommended,ICICI Amazon Pay,200,5.0,
+21,"Amazon shopping, not a prime member, spending Rs. 4000",ICICI Amazon Pay,1.0,amazon_non_prime,recommended,ICICI Amazon Pay,120,3.0,
+22,Paying for a digital subscription worth Rs. 1000,ICICI Amazon Pay,1.0,digital_categories,recommended,ICICI Amazon Pay,20,2.0,
+23,"Shopping online for Rs. 30,000",SBI Cashback;SBI SimplyCLICK,0.5,online_shopping,recommended,SBI Cashback,1500,5.0,Comparison: cashback Rs.1500 beats points at 0.5 valuation Rs.750
+24,Buying a rare collectible for Rs. 5000,SBI Cashback,1.0,other,insufficient_information,,,,SBI Cashback has no generic other rule; its structure is purely online/offline

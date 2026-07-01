@@ -9,6 +9,29 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: credit_card_rewards
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d credit_card_rewards"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: credit_card_rewards
+
     steps:
       - uses: actions/checkout@v4
 
@@ -27,8 +50,25 @@ jobs:
       - name: Ruff format check
         run: ruff format --check .
 
-      - name: mypy (database/models.py, strict)
-        run: mypy database/models.py
+      - name: mypy (database/models.py, tools/, strict)
+        run: mypy database/models.py tools/calculator.py tools/retriever.py
 
-      - name: pytest
+      - name: Apply migrations
+        run: alembic upgrade head
+
+      - name: Seed the 5-card MVP corpus
+        run: python -m database.seed
+
+      - name: pytest (unit + integration)
         run: pytest --cov --cov-report=term-missing
+
+      # Golden-set gates (Section 18.4): these are non-negotiable per the implementation
+      # guide - block the merge rather than let calculation drift or an ungrounded claim in.
+      - name: Calculation accuracy gate (must be 100%)
+        run: python -m evaluation.calculation_eval
+
+      - name: Retrieval precision@5 gate (must be >= 0.75)
+        run: python -m evaluation.rag_eval
+
+      - name: Grounding / hallucination gate (must be 0% ungrounded)
+        run: python -m evaluation.hallucination_eval

@@ -24,9 +24,10 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-# text-embedding-3-small produces 1536-dimensional vectors (Section 9.1). If the embedding
-# model changes, this dimension and the stored data must be migrated together (Section 9.2).
-EMBEDDING_DIM = 1536
+# BAAI/bge-small-en-v1.5 (local, Section 9.1's open-source option) produces 384-dimensional
+# vectors. If the embedding model changes, this dimension and the stored data must be
+# migrated together (Section 9.2).
+EMBEDDING_DIM = 384
 
 
 class Base(DeclarativeBase):
@@ -44,6 +45,16 @@ class RewardUnit(enum.StrEnum):
 class CapType(enum.StrEnum):
     MONTHLY = "monthly"
     ANNUAL = "annual"
+
+
+class CapBasis(enum.StrEnum):
+    """What cap_value is measured in — real card data has both mechanics:
+    e.g. Axis Atlas caps the *spend* eligible for the accelerated rate (₹2L/month), while
+    SBI Cashback caps the *reward* itself (₹2,000 cashback/month) regardless of spend.
+    """
+
+    SPEND = "spend"
+    REWARD_UNITS = "reward_units"
 
 
 class RewardRuleStatus(enum.StrEnum):
@@ -119,11 +130,20 @@ class RewardRule(Base):
     )
     card_name: Mapped[str] = mapped_column(String(255), nullable=False)
     spend_category: Mapped[str] = mapped_column(String(100), nullable=False)
+    # For POINTS/MILES: units earned per Rs.100 spent. For CASHBACK: a percentage of spend.
     reward_rate: Mapped[float] = mapped_column(Float, nullable=False)
     reward_unit: Mapped[RewardUnit] = mapped_column(Enum(RewardUnit), nullable=False)
     cap_type: Mapped[CapType | None] = mapped_column(Enum(CapType), nullable=True)
+    cap_basis: Mapped[CapBasis | None] = mapped_column(Enum(CapBasis), nullable=True)
     cap_value: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # Rate applied beyond the cap (e.g. Atlas: 2 miles/100 once the 5x travel cap is hit).
+    # Null/0 means no further reward accrues past the cap.
+    excess_reward_rate: Mapped[float | None] = mapped_column(Float, nullable=True)
     exclusion_flag: Mapped[bool] = mapped_column(default=False)
+    # Hand-curated, human-readable caveat surfaced verbatim in a recommendation's
+    # caps_or_exclusions list (Section 13) - kept as free text rather than a structured MCC
+    # list, since Phase 1's granularity is spend_category, not merchant-category-code.
+    exclusion_note: Mapped[str | None] = mapped_column(Text, nullable=True)
     milestone_flag: Mapped[bool] = mapped_column(default=False)
     confidence_score: Mapped[float] = mapped_column(Float, nullable=False, default=1.0)
     status: Mapped[RewardRuleStatus] = mapped_column(

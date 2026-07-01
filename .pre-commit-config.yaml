@@ -24,4 +24,4 @@ repos:
           - pydantic>=2.9
           - sqlalchemy>=2.0
           - pgvector
-        files: ^database/models\.py$
+        files: ^(database/models|tools/calculator|tools/retriever)\.py$

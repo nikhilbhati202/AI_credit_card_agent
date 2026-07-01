@@ -10,8 +10,12 @@ __pycache__/
 .env
 !.env.example
 
-# Data (raw PDFs referenced by URL/object storage per Section 7.4, not committed)
-data/raw_pdfs/
+# Data. The Phase 1 MVP's 5 official card PDFs (~4.6MB total, source_url recorded in
+# database/seed.py) are committed so a clean clone + CI can reproduce the seeded DB and the
+# golden-set evaluation gates (Section 18.4) without depending on live issuer URLs at build
+# time. Section 7.4's "keep raw PDFs out of the repo" guidance is the right call at a larger
+# scale (many issuers, large files) - revisit with Git LFS or object storage if the corpus
+# grows past a handful of small documents.
 data/processed_chunks/
 
 # Test / coverage artifacts
@@ -30,6 +34,9 @@ coverage.xml
 # OS
 .DS_Store
 Thumbs.db
+
+# Scratch
+trash/
 
 # Docker
 *.log
