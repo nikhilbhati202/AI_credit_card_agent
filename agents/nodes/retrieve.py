@@ -10,11 +10,29 @@ cannot be serialized.
 from typing import Any
 
 from langchain_core.runnables import RunnableConfig
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from agents.state import AgentState
+from database.models import CardDocument
 from rag.embed_documents import embed_query
 from tools.retriever import DEFAULT_TOP_K, retrieve_chunks
+
+
+def _unrecognized_cards(db: Session, cards_owned: list[str]) -> list[str]:
+    """Which of cards_owned don't match any seeded card at all - an exact-string-match
+    typo/casing mismatch (e.g. "axis atlas" or "Axis Atlas ") is otherwise indistinguishable
+    from "this card genuinely has no evidence for this query," and Rule Validation's generic
+    refusal message left a user with no way to tell the two apart.
+    """
+    if not cards_owned:
+        return []
+    known = set(
+        db.execute(
+            select(CardDocument.card_name).where(CardDocument.card_name.in_(cards_owned))
+        ).scalars()
+    )
+    return [c for c in cards_owned if c not in known]
 
 
 def retrieve(state: AgentState, config: RunnableConfig) -> dict[str, Any]:
@@ -25,7 +43,7 @@ def retrieve(state: AgentState, config: RunnableConfig) -> dict[str, Any]:
     embedding = embed_query(query)
     chunks = retrieve_chunks(db, embedding, card_names=cards_owned, top_k=DEFAULT_TOP_K)
 
-    return {
+    result: dict[str, Any] = {
         "retrieved_chunks": [
             {
                 "chunk_id": c.chunk_id,
@@ -39,3 +57,6 @@ def retrieve(state: AgentState, config: RunnableConfig) -> dict[str, Any]:
             for c in chunks
         ]
     }
+    if not chunks:
+        result["unrecognized_cards"] = _unrecognized_cards(db, cards_owned)
+    return result

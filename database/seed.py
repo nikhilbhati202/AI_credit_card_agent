@@ -455,6 +455,70 @@ def seed_mock_data(db: Session) -> None:
     )
 
 
+def seed_transfer_partners(db: Session) -> None:
+    """Axis Atlas EDGE Miles transfer partners (FR-7; Phase 3).
+
+    The issuer's own T&C explicitly states transfer ratios are "dynamic" and points to a
+    live portal (axis.bank.in/miles-transfer) this pipeline could not fetch (the linked PDF
+    404s and the page itself is JS-rendered with no static ratio table - Section 7.1's
+    official-primary-source requirement could not be satisfied here). These three ratios are
+    instead cross-checked across >=3 independent, reputable card-rewards sources as of mid-
+    2026 and unanimous on the numbers (though "Group A/B" labelling varies by source, so
+    group-based annual caps are intentionally not modeled - Section 9.1's edge-case pattern
+    of deferring what would require unverified assumptions). confidence_score is set lower
+    than reward_rules' typical 0.9-1.0 to reflect this secondary-source status honestly.
+    """
+    document = CardDocument(
+        card_name="Axis Atlas",
+        issuer="Axis Bank",
+        document_type="Miles Transfer Program (community cross-checked)",
+        effective_date=date(2026, 4, 2),  # the April 2026 revision date cited by all sources
+        source_url="https://www.axis.bank.in/miles-transfer",
+    )
+    db.add(document)
+    db.flush()
+
+    note = (
+        "Ratio cross-checked across independent card-rewards sources, not confirmed against "
+        "an issuer-published rate table (the issuer states ratios are dynamic - verify the "
+        "current rate on the Axis Bank Miles Transfer portal before transferring)."
+    )
+    partners = [
+        TransferPartner(
+            document_id=document.id,
+            card_name="Axis Atlas",
+            partner_name="Singapore Airlines KrisFlyer",
+            transfer_ratio_from=1,
+            transfer_ratio_to=2,
+            effective_date=document.effective_date,
+            confidence_score=0.75,
+            source_note=note,
+        ),
+        TransferPartner(
+            document_id=document.id,
+            card_name="Axis Atlas",
+            partner_name="Air India Maharaja Club",
+            transfer_ratio_from=1,
+            transfer_ratio_to=2,
+            effective_date=document.effective_date,
+            confidence_score=0.7,
+            source_note=note,
+        ),
+        TransferPartner(
+            document_id=document.id,
+            card_name="Axis Atlas",
+            partner_name="British Airways Executive Club",
+            transfer_ratio_from=2,
+            transfer_ratio_to=1,
+            effective_date=document.effective_date,
+            confidence_score=0.85,
+            source_note=note + " Unanimous 2:1 inverted ratio across all sources checked.",
+        ),
+    ]
+    db.add_all(partners)
+    logger.info("  -> %d transfer partners inserted for Axis Atlas", len(partners))
+
+
 def reset_database(db: Session) -> None:
     """Wipe all seedable tables for a clean re-seed (dev-only script, Section 6.6)."""
     db.execute(delete(RewardRule))
@@ -472,8 +536,9 @@ def main() -> None:
         for spec in CARDS:
             seed_card(db, spec)
         seed_mock_data(db)
+        seed_transfer_partners(db)
         db.commit()
-        logger.info("Seed complete: %d real cards + 1 mock card", len(CARDS))
+        logger.info("Seed complete: %d real cards + 1 mock card + transfer partners", len(CARDS))
     except Exception:
         db.rollback()
         raise

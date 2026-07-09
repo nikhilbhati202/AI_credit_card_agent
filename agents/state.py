@@ -8,12 +8,17 @@ graph's schema as a reviewable artifact, not an implicit contract scattered acro
 
 from typing import Literal, TypedDict
 
-Intent = Literal["single_transaction", "monthly_optimization", "unclear"]
+Intent = Literal["single_transaction", "monthly_optimization", "transfer_evaluation", "unclear"]
+ApprovalStatus = Literal["pending", "approved", "rejected"]
 
 # Loop caps (Section 14.3): both loops in the graph must have a hard iteration cap enforced
 # in state, never just an assumption that the LLM "won't" loop forever.
 MAX_CLARIFICATION_ROUNDS = 1
-MAX_GUARDRAIL_LOOPS = 2  # reserved for Phase 3's Guardrail->Retrieval loop
+# Raised from 2: live testing against a smaller self-hosted model (see COLAB_SETUP.md) showed
+# a higher rate of Guardrail-triggered narrative failures (arithmetic restated wrong, excerpt
+# details mined) than expected from a commercial API - one extra retry meaningfully improves
+# the odds of eventually getting a compliant response before giving up and refusing outright.
+MAX_GUARDRAIL_LOOPS = 3
 
 
 class SpendItem(TypedDict):
@@ -38,6 +43,8 @@ class CardResult(TypedDict):
     cap_applied: bool
     reward_rate: float
     reward_unit: str
+    base_reward_units: float  # points/miles/Rs. actually earned - independent of point_valuation
+    uncapped_reward_value: float | None  # what reward_value would be with no cap
     exclusion_flag: bool
     exclusion_note: str | None
     confidence_score: float
@@ -64,6 +71,7 @@ class AgentState(TypedDict, total=False):
 
     # --- Retrieval / Rule Validation nodes ---
     retrieved_chunks: list[dict[str, object]]
+    unrecognized_cards: list[str]
     evidence_sufficient: bool
     evidence_reason: str
 
@@ -73,6 +81,16 @@ class AgentState(TypedDict, total=False):
 
     # --- Final Answer node ---
     final_answer: dict[str, object]
+
+    # --- Guardrail node (Section 14.1) ---
+    guardrail_passed: bool
+    guardrail_violations: list[str]
+    guardrail_loop_count: int
+
+    # --- Transfer evaluation + Human Approval (Section 10.11/14.1) ---
+    transfer_request: dict[str, object]  # card_name, partner_name, miles_amount, ...
+    transfer_proposal: dict[str, object]
+    approval_status: ApprovalStatus | None
 
     # --- error surfacing (Section 12.2: system failures -> 503, never silent) ---
     error: str | None

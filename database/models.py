@@ -174,6 +174,12 @@ class TransferPartner(Base):
     transfer_ratio_from: Mapped[float] = mapped_column(Float, nullable=False)
     transfer_ratio_to: Mapped[float] = mapped_column(Float, nullable=False)
     effective_date: Mapped[date] = mapped_column(Date, nullable=False)
+    # Lower than reward_rules' typical 0.9-1.0: the issuer's own T&C states these ratios are
+    # "dynamic" and points to a live portal this pipeline could not fetch (Section 7.1 -
+    # official primary source unavailable); the ratio is cross-checked across >=3 independent
+    # secondary sources per Section 7.1's community-source policy, not issuer-verified.
+    confidence_score: Mapped[float] = mapped_column(Float, nullable=False, default=0.75)
+    source_note: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     document: Mapped[CardDocument] = relationship(back_populates="transfer_partners")

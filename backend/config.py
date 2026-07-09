@@ -29,10 +29,27 @@ class Settings(BaseSettings):
     # and Final Answer composition (Section 13.1/1.2 - every other node stays deterministic).
     # Model tiering (Section 23, Must Have): a cheap/fast model for classification, a
     # stronger one only where prose quality actually matters.
+    #
+    # llm_provider selects which client agents/llm.py builds (Section 17's vendor-lock-in
+    # mitigation - one switch, not a rewrite):
+    #   "anthropic"        - ChatAnthropic, needs anthropic_api_key.
+    #   "openai_compatible" - ChatOpenAI pointed at llm_base_url (default): any
+    #       OpenAI-compatible server, e.g. Ollama running in a Colab notebook and tunneled
+    #       out via ngrok/cloudflared. No paid API key required - llm_api_key is a free-form
+    #       placeholder most such servers don't even check.
+    llm_provider: str = "openai_compatible"
+    llm_base_url: str | None = None
+    llm_api_key: SecretStr | None = None
     anthropic_api_key: SecretStr | None = None
-    llm_intent_model: str = "claude-haiku-4-5"
-    llm_final_answer_model: str = "claude-sonnet-5"
+    llm_intent_model: str = "qwen2.5:7b-instruct"
+    llm_final_answer_model: str = "qwen2.5:7b-instruct"
     llm_max_retries: int = 2  # Section 14.1: 2 retries with backoff, then fail as 503
+    # Per-attempt timeout for a single LLM call. 30s (this project's original default, sized
+    # for a commercial API) is too tight for a self-hosted/Colab-tunneled model, which can take
+    # 50-60s on a cold start (loading into GPU VRAM after a session restart) - a timeout this
+    # short would abort a legitimately-in-progress response and force a retry, making total
+    # latency worse, not better.
+    llm_timeout_seconds: int = 90
 
     @property
     def database_url(self) -> str:

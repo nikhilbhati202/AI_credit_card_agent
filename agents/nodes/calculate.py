@@ -63,6 +63,8 @@ def calculate(state: AgentState, config: RunnableConfig) -> dict[str, Any]:
                     cap_applied=evaluation.cap_applied,
                     reward_rate=evaluation.reward_rate,
                     reward_unit=evaluation.reward_unit,
+                    base_reward_units=evaluation.base_reward_units,
+                    uncapped_reward_value=evaluation.uncapped_reward_value,
                     exclusion_flag=evaluation.exclusion_flag,
                     exclusion_note=evaluation.exclusion_note,
                     confidence_score=evaluation.confidence_score,

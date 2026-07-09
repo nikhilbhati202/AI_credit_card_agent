@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from agents.llm import LLMNotConfiguredError, LLMUnavailableError
-from agents.runner import run_agent
+from agents.runner import get_pending_interrupt, run_agent
 from database.db import get_db
 from monitoring.custom_logger import log_recommendation, timed_request
 
@@ -38,6 +38,8 @@ class MonthlyOptimizeRequest(BaseModel):
 class MonthlyOptimizeResponse(BaseModel):
     session_id: str
     follow_up_question: str | None = None
+    approval_pending: bool = False
+    transfer_proposal: dict[str, Any] | None = None
     insufficient_information: bool = False
     allocation: list[dict[str, Any]] = Field(default_factory=list)
     total_estimated_reward_value: float | None = None
@@ -70,22 +72,28 @@ def post_optimize_monthly(
             ) from exc
 
         final_answer = state.get("final_answer")
-        response = (
-            MonthlyOptimizeResponse(
+        interrupt_payload = get_pending_interrupt(state)
+        if interrupt_payload is not None:
+            response = MonthlyOptimizeResponse(
+                session_id=session_id,
+                approval_pending=True,
+                transfer_proposal=interrupt_payload.get("proposal"),
+            )
+        elif state.get("follow_up_question"):
+            response = MonthlyOptimizeResponse(
                 session_id=session_id, follow_up_question=state["follow_up_question"]
             )
-            if state.get("follow_up_question")
-            else MonthlyOptimizeResponse.model_validate(
+        else:
+            response = MonthlyOptimizeResponse.model_validate(
                 {"session_id": session_id, **(final_answer or {})}
             )
-        )
 
     log_recommendation(
         db,
         user_id=None,
         query=request.query,
         intent=state.get("intent"),
-        retrieved_chunk_ids=[int(c["chunk_id"]) for c in state.get("retrieved_chunks", [])],  # type: ignore[call-overload]
+        retrieved_chunk_ids=[int(c["chunk_id"]) for c in state.get("retrieved_chunks", [])],
         final_answer=final_answer,
         latency_ms=timing["latency_ms"],
         confidence=None,

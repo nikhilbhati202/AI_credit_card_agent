@@ -16,6 +16,17 @@ def validate_rules(state: AgentState) -> dict[str, Any]:
     retrieved_chunks = state.get("retrieved_chunks", [])
 
     if not retrieved_chunks:
+        unrecognized = state.get("unrecognized_cards")
+        if unrecognized:
+            return {
+                "evidence_sufficient": False,
+                "evidence_reason": (
+                    f"{', '.join(unrecognized)!r} doesn't match any card name in our system "
+                    "exactly - card names are case- and whitespace-sensitive (e.g. "
+                    "'Axis Atlas', not 'axis atlas' or 'Axis Atlas '). Check the \"Cards you "
+                    'own" list and try again.'
+                ),
+            }
         return {
             "evidence_sufficient": False,
             "evidence_reason": (

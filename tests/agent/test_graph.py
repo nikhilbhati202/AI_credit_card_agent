@@ -213,3 +213,53 @@ class TestSessionMemory:
             assert "final_answer" in turn_2
         finally:
             db.close()
+
+
+class TestGuardrailLoop:
+    """Phase 4 hardening (guide Section 24's Common Pitfall: "No loop-prevention caps on
+    graph cycles... assuming the LLM won't loop forever"), later revised after live user
+    testing showed narrative-only guardrail failures were being refused outright even when
+    the underlying recommendation was independently verified correct - wasting retries against
+    a deterministic (temperature=0) model that reproduces the identical mistake every attempt,
+    and throwing away a good recommendation over unreliable prose (Section 24's actual
+    principle). agents/nodes/guardrail.py now recovers a narrative-only failure immediately,
+    with a safe, template-built explanation, rather than looping or refusing.
+    """
+
+    def test_a_persistently_ungrounded_explanation_is_recovered_immediately_not_looped(
+        self, mock_intent_classification, mock_final_answer_llm
+    ):
+        mock_intent_classification(
+            intent="single_transaction",
+            confidence=0.97,
+            spend_items=[{"category": "flights", "amount": 50000}],
+        )
+        # The recommendation itself (Axis Atlas, correct value) is untouched by this mock -
+        # only the LLM-authored explanation carries an ungrounded number.
+        mock_final_answer_llm("You'll also get a surprise bonus of 87654 miles!")
+
+        db = SessionLocal()
+        try:
+            result = _invoke(
+                {
+                    "user_query": "I am spending Rs. 50,000 on flights.",
+                    "cards_owned": ["Axis Atlas", "Axis ACE"],
+                    "point_valuation": 1.0,
+                },
+                db,
+            )
+        finally:
+            db.close()
+
+        assert result["guardrail_passed"] is True
+        # Recovered on the first pass - no retry loop was needed, since a narrative-only
+        # violation doesn't touch the loop counter at all.
+        assert result.get("guardrail_loop_count", 0) == 0
+        final_answer = result["final_answer"]
+        assert final_answer["insufficient_information"] is False
+        assert final_answer["recommended_card"] == "Axis Atlas"
+        assert final_answer["estimated_reward_value"] == 2500.0
+        # The bad LLM sentence never reaches the user - replaced by a safe, template-built one.
+        assert "surprise bonus" not in final_answer["explanation"]
+        assert "87654" not in final_answer["explanation"]
+        assert "Axis Atlas" in final_answer["explanation"]

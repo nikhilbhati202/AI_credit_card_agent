@@ -81,6 +81,36 @@ def test_recommend_asks_a_clarifying_question_for_an_ambiguous_query(
     assert body["session_id"]
 
 
+def test_recommend_surfaces_a_pending_transfer_approval_instead_of_an_empty_response(
+    mock_intent_classification,
+) -> None:
+    """A transfer-shaped query can reach /recommend directly (a single chat UI drives every
+    intent through this endpoint) - it must pause and report the proposal, not silently
+    return an empty-looking body (the bug this test guards against).
+    """
+    mock_intent_classification(
+        intent="transfer_evaluation",
+        confidence=0.95,
+        spend_items=[],
+        transfer_partner_name="Singapore Airlines KrisFlyer",
+        transfer_miles_amount=10_000,
+    )
+
+    response = client.post(
+        "/api/v1/recommend",
+        json={
+            "query": "Should I transfer 10000 miles to Singapore Airlines KrisFlyer?",
+            "cards_owned": ["Axis Atlas"],
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["approval_pending"] is True
+    assert body["transfer_proposal"]["partner_name"] == "Singapore Airlines KrisFlyer"
+    assert body["recommended_card"] is None
+
+
 def test_recommend_rejects_empty_cards_owned() -> None:
     response = client.post(
         "/api/v1/recommend",

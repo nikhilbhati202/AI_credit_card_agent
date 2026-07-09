@@ -78,5 +78,17 @@ def log_recommendation(
             )
         )
         db.commit()
-    except Exception:  # noqa: BLE001
+    except Exception:  # noqa: BLE001 - must not fail the request, but never swallow silently
         db.rollback()
+        logger.error(
+            json.dumps(
+                {
+                    "event": "recommendation_log_write_failed",
+                    "user_id": user_id,
+                    "query": query,
+                    "intent": intent,
+                },
+                default=str,
+            ),
+            exc_info=True,
+        )

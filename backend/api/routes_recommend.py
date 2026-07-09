@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from agents.llm import LLMNotConfiguredError, LLMUnavailableError
-from agents.runner import run_agent
+from agents.runner import get_pending_interrupt, run_agent
 from database.db import get_db
 from monitoring.custom_logger import log_recommendation, timed_request
 
@@ -31,6 +31,8 @@ class RecommendRequest(BaseModel):
 class RecommendResponse(BaseModel):
     session_id: str
     follow_up_question: str | None = None
+    approval_pending: bool = False
+    transfer_proposal: dict[str, Any] | None = None
     spend_category: str | None = None
     recommended_card: str | None = None
     estimated_reward_value: float | None = None
@@ -72,20 +74,32 @@ def post_recommend(request: RecommendRequest, db: Session = Depends(get_db)) -> 
             ) from exc
 
         final_answer = state.get("final_answer")
-        response = (
-            RecommendResponse(session_id=session_id, follow_up_question=state["follow_up_question"])
-            if state.get("follow_up_question")
-            else RecommendResponse.model_validate(
+        interrupt_payload = get_pending_interrupt(state)
+        if interrupt_payload is not None:
+            # A transfer-shaped query reached Human Approval (Section 10.11) even though the
+            # caller used the general /recommend endpoint - surface the pause rather than
+            # returning an empty-looking response, so a single chat UI can drive every intent
+            # through this one endpoint and use /transfer/confirm to resolve the gate.
+            response = RecommendResponse(
+                session_id=session_id,
+                approval_pending=True,
+                transfer_proposal=interrupt_payload.get("proposal"),
+            )
+        elif state.get("follow_up_question"):
+            response = RecommendResponse(
+                session_id=session_id, follow_up_question=state["follow_up_question"]
+            )
+        else:
+            response = RecommendResponse.model_validate(
                 {"session_id": session_id, **(final_answer or {})}
             )
-        )
 
     log_recommendation(
         db,
         user_id=None,
         query=request.query,
         intent=state.get("intent"),
-        retrieved_chunk_ids=[int(c["chunk_id"]) for c in state.get("retrieved_chunks", [])],  # type: ignore[call-overload]
+        retrieved_chunk_ids=[int(c["chunk_id"]) for c in state.get("retrieved_chunks", [])],
         final_answer=final_answer,
         latency_ms=timing["latency_ms"],
         confidence=response.confidence,

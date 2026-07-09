@@ -8,6 +8,7 @@ from backend.api.routes_cards import router as cards_router
 from backend.api.routes_health import router as health_router
 from backend.api.routes_optimize import router as optimize_router
 from backend.api.routes_recommend import router as recommend_router
+from backend.api.routes_transfer import router as transfer_router
 from backend.api.routes_user import router as user_router
 from backend.config import get_settings
 
@@ -20,6 +21,7 @@ def create_app() -> FastAPI:
     app.include_router(cards_router)
     app.include_router(user_router)
     app.include_router(optimize_router)
+    app.include_router(transfer_router)
 
     # One consistent error envelope across every endpoint (Section 16), implemented once
     # here rather than repeated per-route.

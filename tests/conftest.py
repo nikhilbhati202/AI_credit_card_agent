@@ -29,12 +29,18 @@ def mock_intent_classification(monkeypatch):
         confidence: float = 0.95,
         spend_items: list[dict] | None = None,
         ambiguity_reason: str | None = None,
+        transfer_partner_name: str | None = None,
+        transfer_miles_amount: float | None = None,
+        transfer_partner_point_valuation: float | None = None,
     ) -> None:
         result = IntentClassificationResult(
             intent=intent,
             confidence=confidence,
             spend_items=[SpendItemModel(**item) for item in (spend_items or [])],
             ambiguity_reason=ambiguity_reason,
+            transfer_partner_name=transfer_partner_name,
+            transfer_miles_amount=transfer_miles_amount,
+            transfer_partner_point_valuation=transfer_partner_point_valuation,
         )
         fake_structured_llm = MagicMock()
         fake_structured_llm.invoke.return_value = result

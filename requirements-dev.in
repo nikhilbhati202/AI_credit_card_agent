@@ -2,6 +2,9 @@
 # Compile with: .venv/Scripts/python -m piptools compile requirements-dev.in -o requirements-dev.txt
 -c requirements.txt
 -r requirements.in
+# tests/ui exercises app/streamlit_app.py headlessly via streamlit.testing.v1.AppTest, so the
+# UI's own runtime dependencies must be installed wherever the test suite runs (Section 18.1).
+-r requirements-app.txt
 
 ruff>=0.7,<1.0
 mypy>=1.13,<2.0

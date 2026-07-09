@@ -57,6 +57,17 @@ CATEGORY_KEYWORDS: dict[str, list[str]] = {
     "fuel": ["fuel", "petrol", "diesel", "gas station", "petrol pump"],
     "rent": ["house rent", "rent payment", "paying rent", "rental payment"],
     "insurance": ["insurance premium", "insurance policy", "paying insurance"],
+    # Added after live testing surfaced a real risk: without these as their own recognized
+    # category, a query about one of them could fall through to "other" and incorrectly earn
+    # that card's general/base rate - but every seeded card's "other" rule explicitly excludes
+    # all of these in its exclusion_note (Section 12.2: never grant a reward the T&C denies).
+    # Having no reward_rules row for these categories (correct - they're excluded) means the
+    # system honestly says "no active rule," instead of quietly miscalculating a reward.
+    "gold": ["gold", "jewellery", "jewelry", "gold coin"],
+    "wallet": ["wallet load", "wallet top-up", "wallet topup", "add money to wallet"],
+    "government": ["government service", "government institution", "govt payment", "tax payment"],
+    "education": ["school fee", "college fee", "tuition fee", "education fee"],
+    "cash_advance": ["cash advance", "atm withdrawal", "cash withdrawal"],
     "groceries": ["groceries", "grocery", "supermarket"],
 }
 

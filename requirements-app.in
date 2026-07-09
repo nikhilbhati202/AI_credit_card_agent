@@ -1,0 +1,5 @@
+# Runtime dependencies for the Streamlit UI only (guide Section 17.1: "a thin app that calls
+# the API only") - kept separate from requirements.in so the backend's Docker image never
+# pulls in a UI framework it doesn't need, and vice versa.
+streamlit>=1.38,<2.0
+requests>=2.32,<3.0

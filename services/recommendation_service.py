@@ -61,6 +61,8 @@ class CardEvaluation:
     cap_applied: bool
     reward_rate: float
     reward_unit: str
+    base_reward_units: float  # points/miles/Rs. actually earned - independent of point_valuation
+    uncapped_reward_value: float | None  # what reward_value would be with no cap; None if uncapped
     exclusion_flag: bool
     exclusion_note: str | None
     confidence_score: float
@@ -159,6 +161,20 @@ def evaluate_card(
         point_valuation=point_valuation,
     )
 
+    # When the cap changed the outcome, also compute what the reward would have been at the
+    # accelerated rate with no cap at all - surfacing this (rather than making the LLM guess
+    # or silently omitting it) is what lets the narrative honestly say "you'd earn X, but it's
+    # capped at Y" instead of only showing the already-capped number with no context.
+    uncapped_reward_value: float | None = None
+    if result.cap_applied:
+        uncapped_reward_value = calculate_reward(
+            spend_amount=spend_amount,
+            reward_rate=rule.reward_rate,
+            reward_unit=RewardUnit(DbRewardUnit(rule.reward_unit).value),
+            cap_basis=None,
+            point_valuation=point_valuation,
+        ).reward_value
+
     citation = _citation_from_retrieval(card_name, retrieved) or _citation_from_seed_link(
         db, card_name, rule
     )
@@ -170,6 +186,8 @@ def evaluate_card(
         cap_applied=result.cap_applied,
         reward_rate=rule.reward_rate,
         reward_unit=rule.reward_unit.value,
+        base_reward_units=result.base_reward_units,
+        uncapped_reward_value=uncapped_reward_value,
         exclusion_flag=rule.exclusion_flag,
         exclusion_note=rule.exclusion_note,
         confidence_score=rule.confidence_score,
