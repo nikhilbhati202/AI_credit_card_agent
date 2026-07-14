@@ -7,11 +7,11 @@ a deterministic calculation, and returns a cited, explainable recommendation.
 See `Intelligent_Credit_Card_Rewards_Agent_Documentation.docx` (product/architecture) and
 `Intelligent_Credit_Card_Rewards_Agent_Implementation_Guide.docx` (engineering build order)
 for the full specification. This README covers what exists today and how to run it -
-see [`ARCHITECTURE.md`](ARCHITECTURE.md) for component/data-flow diagrams,
-[`EVALUATION_REPORT.md`](EVALUATION_REPORT.md) for golden-set and safety-test results,
-[`DEMO.md`](DEMO.md) for the scripted end-to-end demo walkthrough, and
-[`COLAB_SETUP.md`](COLAB_SETUP.md) if you'd rather run the LLM for free in a Google Colab
-notebook than pay for the Anthropic API (no code change needed - just a `.env` setting).
+see [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) for component/data-flow diagrams,
+[`EVALUATION_REPORT.md`](docs/EVALUATION_REPORT.md) for golden-set and safety-test results,
+[`DEMO.md`](docs/DEMO.md) for the scripted end-to-end demo walkthrough, and
+[`COLAB_SETUP.md`](docs/COLAB_SETUP.md) for the step-by-step guide to running the LLM for free in
+a Google Colab notebook (just a `.env` setting, no code change needed).
 
 ## Status
 
@@ -27,8 +27,8 @@ validation-triggered refusal no longer re-invokes the narrative LLM at all, clos
 where an unvalidated LLM claim could otherwise leak into a "safe" refusal message), and a
 commit-SHA-tagged rollback demonstrated end-to-end (see "Rollback" below).
 
-See [`EVALUATION_REPORT.md`](EVALUATION_REPORT.md) for full results and methodology,
-[`ARCHITECTURE.md`](ARCHITECTURE.md) for diagrams, and [`DEMO.md`](DEMO.md) for the scripted
+See [`EVALUATION_REPORT.md`](docs/EVALUATION_REPORT.md) for full results and methodology,
+[`ARCHITECTURE.md`](docs/ARCHITECTURE.md) for diagrams, and [`DEMO.md`](docs/DEMO.md) for the scripted
 walkthrough. Golden-set numbers are unchanged from Phase 2 (Phases 3-4 added no new
 calculation or retrieval code paths, only safety/approval layers around the existing ones):
 **34** single-transaction questions (100% calculation accuracy) + **7** monthly-optimization
@@ -39,10 +39,9 @@ tests pass (51 unit, 21 integration, 22 agent, 9 UI).
 ## Quickstart
 
 **Prerequisites:** Docker Desktop (or another Docker Engine + Compose v2), `git`, and a
-working LLM endpoint - either a free Google Colab notebook (see
-[`COLAB_SETUP.md`](COLAB_SETUP.md), no payment or account beyond a Google login required) or
-an [Anthropic API key](https://console.anthropic.com/) if you'd rather use Claude. The app
-starts and the automated test suite passes without either. No local Python/Postgres install
+working LLM endpoint - a free Google Colab notebook (see [`COLAB_SETUP.md`](docs/COLAB_SETUP.md),
+no payment or account beyond a Google login required) is the supported path. The app starts
+and the automated test suite passes without one configured. No local Python/Postgres install
 is required for this path - everything else runs inside containers. This should comfortably
 clear the guide's 30-minute clean-clone target: the image build and corpus seed together took
 well under 5 minutes on this machine with a warm Docker/pip cache; a fully cold machine will
@@ -52,8 +51,7 @@ embedding-model download during the first seed, both bandwidth-bound rather than
 ```bash
 git clone <this-repo-url> && cd AI_credit_card_agent
 cp .env.example .env
-# Default (.env.example's LLM_PROVIDER=openai_compatible): follow COLAB_SETUP.md, then paste
-# the tunnel URL into LLM_BASE_URL. Or set LLM_PROVIDER=anthropic and ANTHROPIC_API_KEY instead.
+# Follow COLAB_SETUP.md, then paste the tunnel URL into LLM_BASE_URL.
 
 docker compose up -d --build
 curl http://localhost:8000/health   # -> {"status": "ok"}
@@ -87,7 +85,7 @@ python -m venv .venv
 pip install -r requirements-dev.txt
 pre-commit install
 
-# Point .env at a reachable Postgres instance and configure an LLM provider (see Quickstart), then:
+# Point .env at a reachable Postgres instance and configure the LLM endpoint (see Quickstart), then:
 alembic upgrade head
 python -m database.seed
 uvicorn backend.main:app --reload
@@ -105,8 +103,8 @@ python -m evaluation.hallucination_eval          # must be 0% ungrounded
 
 All four run the deterministic core directly (no LLM calls), so they're free and
 deterministic to run in CI. `pytest` mocks the two LLM-touching nodes (`tests/conftest.py`)
-for the same reason - a configured LLM provider (Colab/Ollama or Anthropic, see Quickstart) is
-only needed to actually run the live app.
+for the same reason - a configured LLM endpoint (Colab/Ollama, see Quickstart) is only
+needed to actually run the live app.
 
 ## Multi-turn conversations
 
@@ -232,7 +230,7 @@ Section 20.3) is out of scope for this capstone's local/demo deployment target.
 | Type checking | mypy (`--strict` on `database/models.py`, `tools/`, `agents/*`) |
 | Tests | pytest (`tests/unit`, `tests/integration`, `tests/agent`, `tests/ui`) |
 | Embeddings | Local `BAAI/bge-small-en-v1.5` via sentence-transformers (no API key needed) |
-| LLM | Provider-switchable via `LLM_PROVIDER` (`agents/llm.py`): `openai_compatible` (default - any OpenAI-compatible server, e.g. Ollama in Colab, see `COLAB_SETUP.md`) or `anthropic` (`claude-haiku-4-5`/`claude-sonnet-5`) |
+| LLM | Any OpenAI-compatible chat-completions server (`agents/llm.py`), e.g. Ollama in a free Google Colab notebook - see `COLAB_SETUP.md` |
 | Orchestration | LangGraph (`agents/graph.py`), session memory via its `MemorySaver` checkpointer, Human Approval via `interrupt()`/`Command(resume=...)` |
 | UI | Streamlit (`app/streamlit_app.py`), tested headlessly via `streamlit.testing.v1.AppTest` |
 | Tracing | LangSmith, auto-enabled via `LANGCHAIN_TRACING_V2`/`LANGCHAIN_API_KEY` env vars (see `monitoring/langsmith_config.py`) - traces every graph node run, including `guardrail` and `human_approval` |

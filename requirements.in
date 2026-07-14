@@ -16,11 +16,9 @@ pdfplumber>=0.11,<1.0
 langchain-text-splitters>=0.3,<1.0
 sentence-transformers>=3.0,<4.0
 
-# Agent orchestration (Section 15): LangGraph for the graph itself; two interchangeable LLM
-# client libraries behind agents/llm.py's provider switch (Section 17 vendor-lock-in
-# mitigation) - Claude (ChatAnthropic) or any OpenAI-compatible server such as a Colab-hosted
-# Ollama instance (ChatOpenAI). Only Intent Classification and the Final Answer node's
-# narrative touch an LLM at all (Section 13.1/1.2).
+# Agent orchestration (Section 15): LangGraph for the graph itself; agents/llm.py reaches the
+# LLM via any OpenAI-compatible server (e.g. a Colab-hosted Ollama instance) through
+# langchain-openai. Only Intent Classification and the Final Answer node's narrative touch an
+# LLM at all (Section 13.1/1.2).
 langgraph>=0.2,<1.0
-langchain-anthropic>=0.3,<1.0
 langchain-openai>=0.2,<1.0

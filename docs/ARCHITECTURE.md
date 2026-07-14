@@ -42,7 +42,7 @@ flowchart LR
         PDF["Issuer PDFs\ndata/raw_pdfs/"] --> CHUNK["chunk_documents.py"] --> EMBED["embed_documents.py\n(local bge-small-en-v1.5)"] --> DB
     end
 
-    LLM[("LLM (agents/llm.py)\nopenai_compatible (Colab/Ollama, default) or anthropic")]
+    LLM[("LLM (agents/llm.py)\nany OpenAI-compatible server - Colab/Ollama")]
     LangSmith[("LangSmith / Phoenix\n(optional tracing)")]
 
     UI -- HTTP/JSON --> REC
@@ -72,7 +72,7 @@ Approval - is deterministic, pure Python, independently unit-tested without any 
 flowchart TD
     START((START)) --> Intent
 
-    Intent["Intent Classification 🤖\n(structured output, provider-switchable)"]
+    Intent["Intent Classification 🤖\n(structured output)"]
     Intent -- unclear, round < cap --> Clarify
     Intent -- transfer_evaluation --> Propose
     Intent -- single_transaction /\nmonthly_optimization --> Retrieve

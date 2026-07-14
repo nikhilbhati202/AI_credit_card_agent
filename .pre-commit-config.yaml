@@ -26,7 +26,6 @@ repos:
           - sqlalchemy>=2.0
           - pgvector
           - langgraph>=0.2
-          - langchain-anthropic>=0.3
           - langchain-openai>=0.2
           - fastapi>=0.115
         files: ^(database/models\.py|tools/(calculator|retriever)\.py|agents/.*\.py)$

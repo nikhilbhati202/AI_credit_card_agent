@@ -59,9 +59,9 @@ jobs:
       - name: Seed the 5-card MVP corpus
         run: python -m database.seed
 
-      # No ANTHROPIC_API_KEY is needed here: the graph's two LLM-touching nodes are mocked
+      # No live LLM endpoint is needed here: the graph's two LLM-touching nodes are mocked
       # in tests/conftest.py, so pytest exercises the real HTTP/DB/calculator/retriever paths
-      # without a paid API call (Section 18.3's "Agent" test type run against the compiled
+      # without a live API call (Section 18.3's "Agent" test type run against the compiled
       # graph directly).
       - name: pytest (unit + integration + agent)
         run: pytest --cov --cov-report=term-missing

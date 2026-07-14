@@ -3,15 +3,15 @@
 **Phase 4 deliverable** (Implementation Guide Section 3: "demo video"; acceptance criterion:
 "full demo flow (ingest → query → clarify → approve → recommend) runs live without manual
 intervention"). This is a step-by-step script for recording that demo - it has **not** been
-recorded as an actual video file in this environment, since doing so requires a real
-`ANTHROPIC_API_KEY` (unset here, see `EVALUATION_REPORT.md`'s Known Limitations) and a screen
-recorder, neither of which this agent has access to. Every command below has been dry-run
-against the live `docker compose` stack in this environment up to the point where a real
-Claude call is required; running this script start-to-finish is the one remaining manual step.
+recorded as an actual video file in this environment, since doing so requires a screen
+recorder this agent has no access to. The underlying flow itself has been live-verified
+end-to-end against a real Colab-hosted Ollama/Qwen2.5 model (see `EVALUATION_REPORT.md`);
+running this script start-to-finish in front of a recorder is the one remaining manual step.
 
 ## Before recording
 
-1. `cp .env.example .env` and paste in a real `ANTHROPIC_API_KEY`.
+1. `cp .env.example .env`, then follow `COLAB_SETUP.md` and paste the tunnel URL into
+   `LLM_BASE_URL`.
 2. `docker compose up -d --build` - confirm `curl http://localhost:8000/health` returns
    `{"status": "ok"}`.
 3. `docker compose exec app python -m database.seed` - this **is** the "ingest" step: it

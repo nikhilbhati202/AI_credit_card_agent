@@ -5,8 +5,8 @@ Uses real seeded cards (Axis Atlas et al.) rather than the "Test Card Alpha" moc
 mock card intentionally has no ingested document chunks (it exists for isolated
 calculator/service-layer tests, not for exercising the full RAG-gated pipeline).
 
-The graph's two LLM calls are mocked (tests/conftest.py) so this suite runs without a paid
-Anthropic API key - it still exercises the real HTTP layer, real DB queries, and real
+The graph's two LLM calls are mocked (tests/conftest.py) so this suite runs without a live
+LLM endpoint - it still exercises the real HTTP layer, real DB queries, and real
 calculator/retriever logic end-to-end, only the LLM's two calls are stubbed.
 """
 

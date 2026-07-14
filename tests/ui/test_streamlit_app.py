@@ -265,13 +265,13 @@ def test_api_error_is_shown_without_crashing_the_app() -> None:
     at = AppTest.from_file(APP_PATH).run()
     with patch("app.streamlit_app.requests.post") as mock_post:
         mock_post.return_value = _response(
-            {"error": {"code": "llm_not_configured", "message": "ANTHROPIC_API_KEY is not set."}},
+            {"error": {"code": "llm_not_configured", "message": "LLM_BASE_URL is not set."}},
             status_code=503,
         )
         at.chat_input[0].set_value("Spending 5000 on groceries").run()
 
     assert not at.exception
-    assert any("ANTHROPIC_API_KEY" in error.value for error in at.error)
+    assert any("LLM_BASE_URL" in error.value for error in at.error)
 
 
 def test_reset_conversation_clears_session_state() -> None:

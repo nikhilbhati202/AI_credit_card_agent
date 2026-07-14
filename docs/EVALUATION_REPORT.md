@@ -110,12 +110,7 @@ if ingestion or chunking produced bad data.
   calls. This was a small number of manual spot-checks, not a full golden-set run against the
   live model - the golden-set gates above still run LLM-free by design (Section 18.4) and
   remain the CI-blocking source of truth for calculation/retrieval correctness regardless of
-  which LLM provider is configured.
-- **The Anthropic path itself remains unverified live** in this environment (no
-  `ANTHROPIC_API_KEY` has been used here) - only the `openai_compatible`/Colab path has an
-  actual live run behind it. The mocked-LLM test suite proves the *graph wiring, guardrails,
-  and approval gating* are correct regardless of provider or what the LLM says; it does not by
-  itself prove prose quality for a provider that hasn't been run live.
+  which LLM endpoint is configured.
 - **LangSmith tracing has not been exercised with a real account.** The integration is
   env-var driven and requires no code change, but no trace has actually been produced or
   inspected in this environment (no `LANGCHAIN_API_KEY` available here).

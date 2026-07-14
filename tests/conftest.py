@@ -2,8 +2,8 @@
 LangGraph graph directly, not through the API").
 
 The two LLM-touching nodes (Intent Classification, Final Answer) are mocked here rather than
-calling the real Anthropic API: this keeps the automated suite free, deterministic, and
-runnable in CI without a paid API key as a secret. Every other node (retrieval, validation,
+calling a real hosted LLM: this keeps the automated suite free, deterministic, and runnable
+in CI without a live LLM endpoint as a dependency. Every other node (retrieval, validation,
 calculation, comparison) runs for real against the seeded test database - only the two LLM
 calls are faked, so a bug in graph wiring or the deterministic nodes still surfaces here.
 """
